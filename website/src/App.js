@@ -1,10 +1,32 @@
 import React, { Component } from 'react'
 import './App.css'
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  LineChart, Line, XAxis, YAxis, Tooltip, Legend,
 } from 'recharts'
-var request = require('request')
+import mqtt from 'mqtt'
+import axios from 'axios'
+const username = 'AxelParis'
+const key      = 'dd1d5b64bc9e45cc8a6180296adf57cb'
+const url      = `mqtts://${username}:${key}@io.adafruit.com`
 
+
+let client  = mqtt.connect(url)
+
+const checkConnection = () => {
+  console.log(client)
+  if(!client.connected){
+    client = mqtt.connect(url)
+  }
+}
+
+client.on('message', function (topic, message) {
+  // message is Buffer
+  console.log(message.toString())
+  client.end()
+})
+client.on('connect', function () {
+  client.subscribe(`${username}/feeds/onoff`)
+})
 
 class App extends Component {
 
@@ -33,34 +55,75 @@ class App extends Component {
       },
     ]
   }
+  constructor(){
+    super()
+    this.toggleOnOff = this.toggleOnOff.bind(this)
+  }
   componentWillMount(){
+    this.getLastOnOffValue()
+  }
 
+  getLastOnOffValue(){
+    const self = this
     var options = {
+      method: 'get',
       url: 'https://io.adafruit.com/api/v2/AxelParis/feeds',
       headers: {
         'X-AIO-Key': 'dd1d5b64bc9e45cc8a6180296adf57cb',
         'Content-Type': 'application/json'
       }
-    };
-
-    function callback(error, response, body) {
-      if (!error && response.statusCode === 200) {
-        var feeds = JSON.parse(body);
-        console.log(feeds.length + " FEEDS AVAILABLE")
-
-        feeds.forEach(function (feed) {
-          console.log(feed.name, feed.key)
-        })
-      }
     }
 
-    request(options, callback)
+    axios(options).then(data => {
+      const feeds = data.data
+
+      feeds.forEach(function (feed) {
+        if(feed.name === "onoff"){
+          const lastValue = feed.last_value
+          const on = lastValue === "ON" ? true : false
+          self.setState({on: on})
+        }
+      })
+    })
+  }
+
+  toggleOnOff(){
+    let data
+    if(this.state.on === true){
+      this.setState({on: false})
+      data = {
+        "value": "OFF", 
+        "lat": 0,
+        "lon": 0, 
+        "ele": 0
+      }
+    }else{
+      this.setState({on: true})
+      data = {
+        "value": "ON", 
+        "lat": 0,
+        "lon": 0, 
+        "ele": 0
+      }
+    }
+    
+    
+    checkConnection()
+    client.publish(`${username}/feeds/onoff`, JSON.stringify(data))
   }
   render() {
     return (
       <div>
         <div className="chart">
           <h1>Évolution de la température</h1>
+          <div className="switch-container">
+                <label>
+                    <input ref="switch" checked={ this.state.on } onChange={ this.toggleOnOff } className="switch" type="checkbox" />
+                    <div>
+                      <div></div>
+                    </div>
+                </label>
+            </div>
           <LineChart
             width={800}
             height={300}
