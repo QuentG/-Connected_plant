@@ -42,19 +42,10 @@ int main()
 
         printf("La temperature est de : %f \n", temperature);
 
-        Thread::wait(PERIOD_MS);
-    }
+        float measure_percent = an.read()*3.3*100/3.3;
 
-    while (true)
-    {
-        if(an > 0.3f) {
-            led1 = 1;
-        } else {
-            led1 = 0;
-        }
+        printf("Percentage humidity: %3.3f%%\n", measure_percent);
         
-        printf("Percentage humidity: %3.3f%%\n", an.read()*100.0f);
-
         Thread::wait(PERIOD_MS);
     }
 }
