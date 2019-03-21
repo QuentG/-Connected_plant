@@ -16,21 +16,32 @@
  */
 #include "mbed.h"
 
-
 namespace {
 #define PERIOD_MS 50
 }
 
 static DigitalOut led1(LED1);
+static AnalogIn an(ADC_IN1);
+static I2C i2c(I2C1_SDA, I2C1_SCL);
+
+char cmd[2];
+
+uint8_t lm75_adress = 0x48 << 1;
 
 // main() runs in its own thread in the OS
 // (note the calls to Thread::wait below for delays)
 int main()
 {
     while (true) {
-        printf("Alive!\n");
-        led1 = !led1;
-        printf("etat de la led", led1);
+        
+        cmd[0] = 0x00;
+        i2c.write(lm75_adress, cmd, 1);
+        i2c.read(lm75_adress, cmd, 2)
+
+        float temperature = ((cmd[0] << 8 | cmd[1]) >> 7) * 0.5;
+
+        printf("La temperature est de : %f \n", temperature);
+
         Thread::wait(PERIOD_MS);
     }
 }
