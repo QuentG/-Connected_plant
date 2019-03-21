@@ -32,8 +32,8 @@ uint8_t lm75_adress = 0x48 << 1;
 // (note the calls to Thread::wait below for delays)
 int main()
 {
-    while (true) {
-        
+    while (true) 
+    {
         cmd[0] = 0x00;
         i2c.write(lm75_adress, cmd, 1);
         i2c.read(lm75_adress, cmd, 2)
@@ -41,6 +41,19 @@ int main()
         float temperature = ((cmd[0] << 8 | cmd[1]) >> 7) * 0.5;
 
         printf("La temperature est de : %f \n", temperature);
+
+        Thread::wait(PERIOD_MS);
+    }
+
+    while(1)
+    {
+        if(an > 0.3f) {
+            led1 = 1;
+        } else {
+            led1 = 0;
+        }
+        
+        printf("Percentage humidity: %3.3f%%\n", an.read()*100.0f);
 
         Thread::wait(PERIOD_MS);
     }
