@@ -36,7 +36,7 @@ int main()
     {
         cmd[0] = 0x00;
         i2c.write(lm75_adress, cmd, 1);
-        i2c.read(lm75_adress, cmd, 2)
+        i2c.read(lm75_adress, cmd, 2);
 
         float temperature = ((cmd[0] << 8 | cmd[1]) >> 7) * 0.5;
 
@@ -45,7 +45,7 @@ int main()
         Thread::wait(PERIOD_MS);
     }
 
-    while(1)
+    while (true)
     {
         if(an > 0.3f) {
             led1 = 1;
