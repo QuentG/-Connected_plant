@@ -1,0 +1,3 @@
+[submodule "project-iot/mbed-os"]
+	path = project-iot/mbed-os
+	url = https://gitlab.com/catie_6tron/mbed-os
