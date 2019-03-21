@@ -42,10 +42,11 @@ int main()
 
         printf("La temperature est de : %f \n", temperature);
 
+        // Calcul % humidity
         float measure_percent = an.read()*3.3*100/3.3;
 
-        printf("Percentage humidity: %3.3f%%\n", measure_percent);
-        
+        printf("Percentage humidity: %f\n", measure_percent);
+
         Thread::wait(PERIOD_MS);
     }
 }
