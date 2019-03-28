@@ -44,7 +44,7 @@ int main()
         printf("La temperature est de : %f \n", temperature);
 
         // Calcul % humidity
-        float measure_percent = an.read()*3.3*100/3.3;
+        float measure_percent = an.read()*100.0/1;
 
         printf("Percentage humidity: %f\n", measure_percent);
 
