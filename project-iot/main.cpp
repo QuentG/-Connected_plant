@@ -34,7 +34,6 @@ int main()
 {
     while (true) 
     {
-    	printf("rzwqestxrdcfvjgykbulhnij \n");
         cmmmd[0] = 0x00;
         i2c.write(lm75_adress, cmmmd, 1);
         i2c.read(lm75_adress, cmmmd, 2);
@@ -43,7 +42,7 @@ int main()
 
         printf("La temperature est de : %f \n", temperature);
 
-        // Calcul % humidity
+        // Calcul % humidity 
         float measure_percent = an.read()*100.0/1;
 
         printf("Percentage humidity: %f\n", measure_percent);
