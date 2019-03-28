@@ -34,12 +34,6 @@ uint8_t lm75_adress = 0x48 << 1;
 #include "MQTTmbed.h"
 #include "MQTTClient.h"
 
-// Network interface
-NetworkInterface *net;
-
-int arrivedcount = 0;
-const char* topic = "AxelParis/feeds/temperature";
-
 /* Printf the message received and its configuration */
 void messageArrived(MQTT::MessageData& md)
 {
@@ -49,25 +43,13 @@ void messageArrived(MQTT::MessageData& md)
     ++arrivedcount;
 }
 
-// MQTT demo
-int main() {
-
-
-
-
-    // Disconnect client and socket
-    client.disconnect();
-    mqttNetwork.disconnect();
-
-    // Bring down the 6LowPAN interface
-    net->disconnect();
-    printf("Done\n");
-}
-
 // main() runs in its own thread in the OS
 // (note the calls to Thread::wait below for delays)
 int main()
 {
+	// Network interface
+	NetworkInterface *net;
+
 	int result;
 
 	// Add the border router DNS to the DNS table
@@ -100,7 +82,11 @@ int main()
 	MQTT::Client<MQTTNetwork, Countdown> client(mqttNetwork);
 
 	// Connect the socket to the MQTT Broker
-	const char* hostname = "fd9f:590a:b158:ffff:ffff::c0a8:0103";
+	const char* username = 'AxelParis';
+	const char* key = 'temperature';
+	const char* hostname = "mqtts://" + username + ":" + key +"@io.adafruit.com";
+	const char* topic_temperature = "AxelParis/feeds/temperature";
+	const char* hostnameipv6 = "fd9f:590a:b158:ffff:ffff::c0a8:0103";
 	uint16_t port = 1883;
 	printf("Connecting to %s:%d\r\n", hostname, port);
 	int rc = mqttNetwork.connect(hostname, port);
@@ -116,16 +102,15 @@ int main()
 	if ((rc = client.connect(data)) != 0)
 		printf("rc from MQTT connect is %d\r\n", rc);
 
-	// Subscribe to the same topic we will publish in
-	if ((rc = client.subscribe(topic, MQTT::QOS2, messageArrived)) != 0)
+	// Subscribe to the same topic_temperature we will publish in
+	if ((rc = client.subscribe(topic_temperature, MQTT::QOS2, messageArrived)) != 0)
 		printf("rc from MQTT subscribe is %d\r\n", rc);
 
 	// Send a message with QoS 0
 	MQTT::Message message;
 
 	// QoS 0
-	char buf[100];
-	sprintf(buf, "Hello World!  QoS 0 message from 6TRON\r\n");
+	char buf[10];
 
 	message.qos = MQTT::QOS0;
 	message.retained = false;
@@ -135,22 +120,27 @@ int main()
 
     while (true) 
     {
-    	printf("rzwqestxrdcfvjgykbulhnij \n");
         cmmmd[0] = 0x00;
         i2c.write(lm75_adress, cmmmd, 1);
         i2c.read(lm75_adress, cmmmd, 2);
 
         float temperature = ((cmmmd[0] << 8 | cmmmd[1]) >> 7) * 0.5;
-
         printf("La temperature est de : %f \n", temperature);
-
         // Calcul % humidity
         float measure_percent = an.read()*100.0/1;
-
         printf("Percentage humidity: %f\n", measure_percent);
+        sprintf(buf, measure_percent);
 
-        rc = client.publish(topic, message);
+        rc = client.publish(topic_temperature, message);
 
         wait_ms(PERIOD_MS);
     }
+
+    // Disconnect client and socket
+	client.disconnect();
+	mqttNetwork.disconnect();
+
+	// Bring down the 6LowPAN interface
+	net->disconnect();
+	printf("Done\n");
 }
