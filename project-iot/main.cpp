@@ -40,7 +40,6 @@ void messageArrived(MQTT::MessageData& md)
     MQTT::Message &message = md.message;
     printf("Message arrived: qos %d, retained %d, dup %d, packetid %d\r\n", message.qos, message.retained, message.dup, message.id);
     printf("Payload %.*s\r\n", message.payloadlen, (char*)message.payload);
-    ++arrivedcount;
 }
 
 // main() runs in its own thread in the OS
@@ -118,7 +117,7 @@ int main()
 	message.payload = (void*)buf;
 	message.payloadlen = strlen(buf)+1;
 
-    while (true) 
+    while (true)
     {
         cmmmd[0] = 0x00;
         i2c.write(lm75_adress, cmmmd, 1);
@@ -129,7 +128,7 @@ int main()
         // Calcul % humidity
         float measure_percent = an.read()*100.0/1;
         printf("Percentage humidity: %f\n", measure_percent);
-        sprintf(buf, measure_percent);
+        sprintf(buf, (char*)(measure_percent));
 
         rc = client.publish(topic_temperature, message);
 
