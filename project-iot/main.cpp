@@ -81,11 +81,16 @@ int main()
 	MQTT::Client<MQTTNetwork, Countdown> client(mqttNetwork);
 
 	// Connect the socket to the MQTT Broker
-	const char* username = 'AxelParis';
-	const char* key = 'temperature';
-	const char* hostname = "mqtts://" + username + ":" + key +"@io.adafruit.com";
-	const char* topic_temperature = "AxelParis/feeds/temperature";
-	const char* hostnameipv6 = "fd9f:590a:b158:ffff:ffff::c0a8:0103";
+	char* username = "AxelParis";
+	char* key = "temperature";
+	char* hostname = "mqtts://";
+	strcat(hostname, username);
+	strcat(hostname, ":");
+	strcat(hostname, key);
+	strcat(hostname, "@io.adafruit.com");
+	char* topic_temperature = "AxelParis/feeds/temperature";
+	char* topic_humidity = "AxelParis/feeds/humidity";
+	char* hostnameipv6 = "fd9f:590a:b158:ffff:ffff::c0a8:0103";
 	uint16_t port = 1883;
 	printf("Connecting to %s:%d\r\n", hostname, port);
 	int rc = mqttNetwork.connect(hostname, port);
@@ -124,12 +129,20 @@ int main()
         i2c.read(lm75_adress, cmmmd, 2);
 
         float temperature = ((cmmmd[0] << 8 | cmmmd[1]) >> 7) * 0.5;
-        printf("La temperature est de : %f \n", temperature);
         // Calcul % humidity
         float measure_percent = an.read()*100.0/1;
-        printf("Percentage humidity: %f\n", measure_percent);
-        sprintf(buf, (char*)(measure_percent));
 
+
+        // Affichage
+        printf("La temperature est de : %f \n", temperature);
+        printf("Percentage humidity: %f\n", measure_percent);
+
+
+        //Envoie des datas
+        sprintf(buf, (char*)(measure_percent));
+        rc = client.publish(topic_humidity, message);
+
+        sprintf(buf, (char*)(temperature));
         rc = client.publish(topic_temperature, message);
 
         wait_ms(PERIOD_MS);
